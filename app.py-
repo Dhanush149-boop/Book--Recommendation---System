@@ -1,0 +1,139 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+from scipy.sparse import csr_matrix
+from sklearn.neighbors import NearestNeighbors
+
+# Title
+st.title("Book Recommendation System")
+
+# Sidebar for file upload
+st.sidebar.header("Upload Data Files")
+books_file = st.sidebar.file_uploader("Books CSV", type=["csv"])
+ratings_file = st.sidebar.file_uploader("Ratings CSV", type=["csv"])
+users_file = st.sidebar.file_uploader("Users CSV", type=["csv"])
+
+if books_file and ratings_file and users_file:
+    book = pd.read_csv(books_file, encoding='latin1')
+    rating = pd.read_csv(ratings_file, encoding='latin1')
+    user = pd.read_csv(users_file, encoding='latin1', engine='python', on_bad_lines='skip')
+
+    st.success("Data Uploaded Successfully!")
+
+    # Merge ratings and books
+    rating_up = rating.merge(book[['ISBN', 'Book-Title']], on='ISBN', how='left')
+    rating_up.dropna(subset=['Book-Title'], inplace=True)
+
+    # Create user and book indices
+    rating_up['user_index'] = rating_up['User-ID'].astype('category').cat.codes
+    rating_up['book_index'] = rating_up['Book-Title'].astype('category').cat.codes
+
+    # Build User-Book Matrix
+    user_book_matrix = csr_matrix(
+        (rating_up['Book-Rating'], (rating_up['user_index'], rating_up['book_index']))
+    )
+
+    # Build Book-User Matrix
+    book_user_matrix = csr_matrix(
+        (rating_up['Book-Rating'], (rating_up['book_index'], rating_up['user_index']))
+    )
+
+    # Fit KNN Models
+    user_knn = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=6)
+    user_knn.fit(user_book_matrix)
+
+    book_knn = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=4)
+    book_knn.fit(book_user_matrix)
+
+    user_id_mapping = dict(enumerate(rating_up['User-ID'].astype('category').cat.categories))
+    book_title_mapping = dict(enumerate(rating_up['Book-Title'].astype('category').cat.categories))
+    user_index_mapping = {v: k for k, v in user_id_mapping.items()}
+    book_index_mapping = {v: k for k, v in book_title_mapping.items()}
+    book_mapping = dict(zip(rating_up['book_index'], rating_up['Book-Title']))
+
+    st.sidebar.header("Recommendation Input")
+    selected_user_id = st.sidebar.text_input("Enter User-ID", "")
+    top_n = st.sidebar.slider("Number of Recommendations", 1, 20, 10)
+
+    if selected_user_id:
+        try:
+            selected_user_id = int(selected_user_id)
+        except:
+            st.error("User-ID must be an integer.")
+            st.stop()
+
+        def hybrid_recommend(target_user_id, rating_df, top_n=10):
+            if target_user_id not in user_index_mapping:
+                st.warning("User not found in the dataset.")
+                return
+
+            target_user_index = user_index_mapping[target_user_id]
+
+            # Find similar users
+            distances, indices = user_knn.kneighbors(user_book_matrix[target_user_index], n_neighbors=6)
+            similar_users = [user_id_mapping[i] for i in indices.flatten() if i != target_user_index]
+
+            # Books read and rated by target user
+            target_user_data = rating_df[rating_df['User-ID'] == target_user_id][['Book-Title', 'Book-Rating']]
+            target_user_books = set(target_user_data['Book-Title'])
+
+            st.subheader(f"Books read by User {target_user_id}:")
+            if target_user_data.empty:
+                st.write("This user has not rated any books yet.")
+            else:
+                for _, row in target_user_data.iterrows():
+                    st.write(f"- {row['Book-Title']} (Rating: {row['Book-Rating']})")
+
+            # Books liked by similar users
+            similar_users_books = rating_df[rating_df['User-ID'].isin(similar_users)]
+            recommended_books_user = (
+                similar_users_books[similar_users_books['Book-Rating'] >= 5]
+                .loc[~similar_users_books['Book-Title'].isin(target_user_books)]
+                .groupby('Book-Title')['Book-Rating']
+                .mean()
+                .sort_values(ascending=False)
+                .head(top_n)
+            )
+
+            st.subheader("Top recommendations from similar users:")
+            if recommended_books_user.empty:
+                st.write("No new books found from similar users.")
+            else:
+                for book, rating in recommended_books_user.items():
+                    st.write(f"- {book} (avg rating: {rating:.2f})")
+
+            # Books similar to what target user read
+            similar_books_set = set()
+            for book in target_user_books:
+                if book in book_index_mapping:
+                    book_id = book_index_mapping[book]
+                    distances, indices = book_knn.kneighbors(book_user_matrix[book_id], n_neighbors=4)
+                    for idx in indices.flatten()[1:]:
+                        similar_books_set.add(book_mapping[idx])
+
+            st.subheader("Books similar to what the user has read:")
+            if not similar_books_set:
+                st.write("No similar books found.")
+            else:
+                similar_books_ratings = (
+                    rating_df[rating_df['Book-Title'].isin(similar_books_set)]
+                    .groupby('Book-Title')['Book-Rating']
+                    .mean()
+                    .sort_values(ascending=False)
+                )
+                for book, avg_rating in similar_books_ratings.head(top_n).items():
+                    st.write(f"- {book} (avg rating: {avg_rating:.2f})")
+
+            # Combine both sources
+            final_recommendations = set(recommended_books_user.index).union(similar_books_set)
+
+            st.subheader(f"Final Combined Recommendations for User {target_user_id}:")
+            if not final_recommendations:
+                st.write("No recommendations available.")
+            else:
+                for book in list(final_recommendations)[:top_n]:
+                    st.write("- " + book)
+
+        hybrid_recommend(selected_user_id, rating_up, top_n)
+else:
+    st.info("Please upload Books.csv, Ratings.csv, and Users.csv files to get recommendations.")
