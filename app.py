@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-# ------------------ PAGE CONFIG ------------------
 st.set_page_config(
     page_title="Book Recommendation System",
     page_icon="📚",
@@ -11,19 +10,22 @@ st.set_page_config(
 
 st.title("📚 Book Recommendation System")
 
-# ------------------ DATA LOADING ------------------
 DATA_DIR = Path(__file__).parent
 
 @st.cache_data
 def load_data():
-    try:
-        books = pd.read_csv(DATA_DIR / "Books.csv")
-        ratings = pd.read_csv(DATA_DIR / "Ratings.csv")
-        users = pd.read_csv(DATA_DIR / "Users.csv")
-        return books, ratings, users
-    except Exception as e:
-        st.error(f"Error loading data: {e}")
-        return None, None, None
+    required_files = ["Books.csv", "Ratings.csv", "Users.csv"]
+
+    for file in required_files:
+        if not (DATA_DIR / file).exists():
+            st.error(f"❌ Missing file: {file}")
+            return None, None, None
+
+    books = pd.read_csv(DATA_DIR / "Books.csv")
+    ratings = pd.read_csv(DATA_DIR / "Ratings.csv")
+    users = pd.read_csv(DATA_DIR / "Users.csv")
+
+    return books, ratings, users
 
 books, ratings, users = load_data()
 
@@ -32,42 +34,20 @@ if books is None:
 
 st.success("✅ Data loaded successfully")
 
-# ------------------ DATA CLEANING ------------------
-books = books.dropna(subset=["Book-Title"])
-ratings = ratings.dropna(subset=["Book-Rating"])
+# Dataset overview
+st.subheader("📊 Dataset Overview")
+col1, col2, col3 = st.columns(3)
+col1.metric("Books", books.shape[0])
+col2.metric("Ratings", ratings.shape[0])
+col3.metric("Users", users.shape[0])
 
-# ------------------ POPULARITY-BASED RECOMMENDER ------------------
-def get_popular_books(n=10):
-    popular = (
-        ratings.groupby("ISBN")["Book-Rating"]
-        .count()
-        .reset_index()
-        .rename(columns={"Book-Rating": "num_ratings"})
-    )
+# Preview data
+st.subheader("🔍 Sample Data Preview")
+with st.expander("📘 Books Dataset"):
+    st.dataframe(books.head(10))
 
-    popular = popular.merge(books, on="ISBN")
+with st.expander("⭐ Ratings Dataset"):
+    st.dataframe(ratings.head(10))
 
-    popular = popular.sort_values(
-        by="num_ratings", ascending=False
-    ).head(n)
-
-    return popular
-
-# ------------------ STREAMLIT UI ------------------
-st.subheader("🔥 Popular Books")
-
-num_books = st.slider("Select number of recommendations", 5, 20, 10)
-
-popular_books = get_popular_books(num_books)
-
-cols = st.columns(5)
-for i, (_, row) in enumerate(popular_books.iterrows()):
-    with cols[i % 5]:
-        st.markdown(f"**{row['Book-Title']}**")
-        st.caption(row.get("Book-Author", "Unknown"))
-        if "Image-URL-M" in row:
-            st.image(row["Image-URL-M"], use_container_width=True)
-
-# ------------------ DATA PREVIEW ------------------
-with st.expander("📊 Preview Dataset"):
-    st.write(books.head())
+with st.expander("👤 Users Dataset"):
+    st.dataframe(users.head(10))
