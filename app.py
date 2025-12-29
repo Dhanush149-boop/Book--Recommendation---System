@@ -29,6 +29,5 @@ def load_data():
 
     return books, ratings, users
 
-books, ratings, users = load_data()
 
-st.write("hi dhanush", books.head())
+st.write("hi dhanush")
