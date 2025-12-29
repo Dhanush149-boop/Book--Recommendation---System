@@ -16,15 +16,15 @@ DATA_DIR = Path(__file__).parent
 
 @st.cache_data
 def load_data():
-    required_files = ["Books", "Ratings", "Users"]
+    required_files = ["Books.csv", "Ratings.csv", "Users.csv"]
 
     for file in required_files:
         if not (DATA_DIR / file).exists():
             st.error(f"❌ Missing file: {file}")
             return None, None, None
 
-    books = pd.read_csv(DATA_DIR / "Books")
-    ratings = pd.read_csv(DATA_DIR / "Ratings")
-    users = pd.read_csv(DATA_DIR / "Users")
+    books = pd.read_csv(DATA_DIR / "Books.csv")
+    ratings = pd.read_csv(DATA_DIR / "Ratings.csv")
+    users = pd.read_csv(DATA_DIR / "Users.csv")
 
     return books, ratings, users
