@@ -26,7 +26,10 @@ def load_data():
     books = pd.read_csv(DATA_DIR / "Books.csv")
     ratings = pd.read_csv(DATA_DIR / "Ratings.csv")
     users = pd.read_csv(DATA_DIR / "Users.csv")
+    st.write(books.head())
+    st.write(ratings.head())
+    st.write(users.head())
 
     return books, ratings, users
 
-print(load_data())
+
