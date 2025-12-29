@@ -17,7 +17,7 @@ DATA_DIR = Path(__file__).parent
 @st.cache_data
 def load_data():
     try:
-        books = pd.read_csv(DATA_DIR / "Books_compressed.csv.gz")
+        books = pd.read_csv(DATA_DIR / "Books_compressed.csv")
         ratings = pd.read_csv(DATA_DIR / "Ratings.csv")
         users = pd.read_csv(DATA_DIR / "Users.csv")
         return books, ratings, users
