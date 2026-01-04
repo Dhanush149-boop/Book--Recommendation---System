@@ -34,45 +34,34 @@ body {
 }
 
 /* HEADER */
-.header {
-body {
-    background-color: #f6f8fc;
-}
-header, footer {visibility: hidden;}
 .sticky-header {
     position: fixed;
     top: 0;
     width: 100%;
-    height: 70px;
-    background: linear-gradient(90deg, #f8fafc, #e2e8f0);
-    padding: 10px 24px;
+    background: linear-gradient(90deg, #1e3c72, #2a5298);
+    padding: 8px 16px; /* slightly smaller padding */
     z-index: 1000;
     display: flex;
     align-items: center;
-    padding: 0 25px;
-    z-index: 1000;
-    border-bottom: 1px solid #ddd;
+    justify-content: center; /* center all content */
+    gap: 16px; /* spacing between logo and title */
+    height: 60px; /* fixed header height */
 }
-.header img {
-    height: 55px;
+
 .logo {
-    height: 42px;
+    height: 40px; /* adjust logo to fit header */
 }
+
 .header-title {
-    flex: 1;
-    text-align: center;
-    font-size: 26px;
-    font-size: 24px;
+    font-size: 20px;
     color: white;
     font-weight: 700;
-    color: #1e293b;
 }
 .spacer { height: 85px; }
-            
 .page-spacer {
     height: 75px;
 }
-            
+
 /* BOOK CARD */
 .book-card {
     background: white;
