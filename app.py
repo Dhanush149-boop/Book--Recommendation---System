@@ -11,115 +11,103 @@ st.set_page_config(
     layout="wide"
 )
 
-# ------------------ REMOVE DEFAULT PADDING ------------------
+# ------------------ REMOVE STREAMLIT PADDING ------------------
 st.markdown("""
 <style>
-.block-container {
-    padding: 0rem !important;
-}
+.block-container { padding: 0 !important; }
+header, footer { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------ CUSTOM CSS ------------------
 st.markdown("""
 <style>
-
-body {
-    background-color: #f6f8fc;
-}
-
-header, footer {visibility: hidden;}
-
-.sticky-header {
+/* HEADER */
+.header {
     position: fixed;
     top: 0;
     width: 100%;
-    background: linear-gradient(90deg, #1e3c72, #2a5298);
-    padding: 12px 30px;
-    z-index: 1000;
+    height: 70px;
+    background: linear-gradient(90deg, #f8fafc, #e2e8f0);
     display: flex;
     align-items: center;
+    padding: 0 25px;
+    z-index: 1000;
+    border-bottom: 1px solid #ddd;
 }
 
-.logo {
-    height: 45px;
+.header img {
+    height: 55px;
 }
 
 .header-title {
     flex: 1;
     text-align: center;
     font-size: 26px;
-    color: white;
-    font-weight: 600;
+    font-weight: 700;
+    color: #1e293b;
 }
 
-.page-spacer {
-    height: 80px;
-}
+.spacer { height: 85px; }
 
-/* BOOK CARD */
-.book-card {
-    background: white;
+/* CARD */
+.card {
+    height: 360px;
     border-radius: 14px;
+    background: #ffffff;
     padding: 12px;
-    height: 420px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    transition: all 0.3s ease;
     text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    transition: 0.3s ease;
 }
 
-.book-card:hover {
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: 0 10px 26px rgba(0,0,0,0.18);
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 26px rgba(0,0,0,0.15);
 }
 
-.book-img {
-    height: 210px;
+.card img {
+    height: 150px;
     object-fit: contain;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
-.book-title {
-    font-size: 15px;
-    font-weight: 600;
-    min-height: 45px;
+/* TEXT */
+.title {
+    font-size: 17px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.book-author {
-    font-size: 13px;
-    color: #555;
+.author {
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
 }
 
-.rating {
-    color: #f4b400;
-    font-weight: 600;
-    margin-top: 4px;
+.meta {
+    font-size: 12px;
+    color: #64748b;
 }
 
-/* BUTTONS */
-.btn {
-    margin-top: 8px;
-    padding: 6px 14px;
+/* BUTTON */
+.stButton button {
     border-radius: 20px;
-    border: none;
-    background: #2a5298;
-    color: white;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-.btn:hover {
-    background: #1e3c72;
+    font-size: 12px;
+    padding: 4px 14px;
 }
 
 /* PAGINATION */
 .pagination {
     position: fixed;
-    bottom: 55px;
+    bottom: 48px;
     width: 100%;
-    background: #f6f8fc;
-    padding: 10px;
+    background: #f8fafc;
+    padding: 8px;
     text-align: center;
+    border-top: 1px solid #ddd;
 }
 
 /* FOOTER */
@@ -127,92 +115,109 @@ header, footer {visibility: hidden;}
     position: fixed;
     bottom: 0;
     width: 100%;
-    background: linear-gradient(90deg, #1e3c72, #2a5298);
+    height: 45px;
+    background: #1e293b;
     color: white;
     text-align: center;
-    padding: 8px;
-    font-size: 14px;
+    padding-top: 12px;
+    font-size: 13px;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------ HEADER ------------------
-LOGO_BASE64 = """PUT_YOUR_BASE64_IMAGE_HERE"""
-
-st.markdown(f"""
-<div class="sticky-header">
-    <img class="logo" src="data:image/jpeg;base64,{LOGO_BASE64}">
+st.markdown("""
+<div class="header">
+    <img src="assets/saraswati.png">
     <div class="header-title">Book Recommendation System</div>
 </div>
-<div class="page-spacer"></div>
+<div class="spacer"></div>
 """, unsafe_allow_html=True)
 
-# ------------------ DATA LOADING ------------------
+# ------------------ DATA ------------------
 DATA_DIR = Path(__file__).parent
 
-@st.cache_data(show_spinner=False)
+@st.cache_data
 def load_data():
-    time.sleep(1.5)  # loader effect
     books = pd.read_csv(DATA_DIR / "Books.csv", encoding="latin-1")
     ratings = pd.read_csv(DATA_DIR / "Ratings.csv", encoding="latin-1")
     users = pd.read_csv(DATA_DIR / "Users.csv", encoding="latin-1")
     return books, ratings, users
 
-with st.spinner("✨ Loading books..."):
-    books, ratings, users = load_data()
+books, ratings, users = load_data()
 
-# ------------------ PREP DATA ------------------
-avg_ratings = ratings.groupby("ISBN")["Book-Rating"].mean().round(2)
-rating_count = ratings.groupby("ISBN")["Book-Rating"].count()
+# ------------------ RATINGS ------------------
+stats = ratings.groupby("ISBN").agg(
+    avg=("Book-Rating", "mean"),
+    cnt=("Book-Rating", "count")
+).reset_index()
 
-books["avg_rating"] = books["ISBN"].map(avg_ratings).fillna(0)
-books["rating_count"] = books["ISBN"].map(rating_count).fillna(0).astype(int)
+books = books.merge(stats, on="ISBN", how="left")
+books[["avg","cnt"]] = books[["avg","cnt"]].fillna(0)
 
-# ------------------ PAGINATION ------------------
+# ------------------ SESSION ------------------
 PER_PAGE = 12
 total_pages = math.ceil(len(books) / PER_PAGE)
 
 if "page" not in st.session_state:
     st.session_state.page = 1
 
+if "expanded" not in st.session_state:
+    st.session_state.expanded = None
+
 start = (st.session_state.page - 1) * PER_PAGE
 end = start + PER_PAGE
 page_books = books.iloc[start:end]
 
 # ------------------ BOOK GRID ------------------
-st.markdown("## 📚 Explore Books")
-
 cols = st.columns(4)
 
 for i, row in page_books.iterrows():
     with cols[i % 4]:
         st.markdown(f"""
-        <div class="book-card">
-            <img class="book-img"
-                 src="{row['Image-URL-L']}"
-                 onerror="this.src='https://via.placeholder.com/150'">
-            <div class="book-title">{row['Book-Title']}</div>
-            <div class="book-author">{row['Book-Author']}</div>
-            <div class="rating">⭐ {row['avg_rating']} ({row['rating_count']})</div>
+        <div class="card">
+            <img src="{row['Image-URL-M']}">
+            <div class="title">{row['Book-Title']}</div>
+            <div class="author">{row['Book-Author']}</div>
+            <div class="meta">{row['Publisher']} · {row['Year-Of-Publication']}</div>
         </div>
         """, unsafe_allow_html=True)
 
-# ------------------ PAGINATION CONTROLS ------------------
+        if st.session_state.expanded == row["ISBN"]:
+            if st.button("🔽 Show Less", key=f"less{row['ISBN']}"):
+                st.session_state.expanded = None
+                st.rerun()
+
+            details = ratings[ratings["ISBN"] == row["ISBN"]] \
+                .merge(users, on="User-ID", how="left") \
+                .head(5)
+
+            st.dataframe(details[["User-ID","Location","Age","Book-Rating"]],
+                         use_container_width=True)
+
+        else:
+            if st.button("🔼 Show More", key=f"more{row['ISBN']}"):
+                st.session_state.expanded = row["ISBN"]
+                st.rerun()
+
+# ------------------ PAGINATION ------------------
 st.markdown('<div class="pagination">', unsafe_allow_html=True)
 
-prev_disabled = st.session_state.page == 1
-next_disabled = st.session_state.page == total_pages
+if st.session_state.page > 1:
+    if st.button("⬅ Previous"):
+        with st.spinner("Loading..."):
+            time.sleep(0.4)
+            st.session_state.page -= 1
+            st.session_state.expanded = None
+            st.rerun()
 
-col1, col2, col3 = st.columns([1,2,1])
-
-with col1:
-    if st.button("⬅ Previous", disabled=prev_disabled):
-        st.session_state.page -= 1
-
-with col3:
-    if st.button("Next ➡", disabled=next_disabled):
-        st.session_state.page += 1
+if st.session_state.page < total_pages:
+    if st.button("Next ➡"):
+        with st.spinner("Loading..."):
+            time.sleep(0.4)
+            st.session_state.page += 1
+            st.session_state.expanded = None
+            st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
 
