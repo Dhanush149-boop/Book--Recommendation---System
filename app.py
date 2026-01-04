@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 # ------------------ CONSTANTS ------------------
-FALLBACK_IMAGE = "http://images.amazon.com/images/P/0883684152.01.THUMBZZZ.jpg"
+FALLBACK_IMAGE = "http://images.amazon.com/images/P/0671870432.01.MZZZZZZZ.jpg"
 
 
 # ------------------ REMOVE DEFAULT PADDING ------------------
@@ -188,11 +188,27 @@ st.markdown("## 📚 Explore Books")
 
 cols = st.columns(4)
 
+def normalize_image_url(url):
+    if pd.isna(url) or url.strip() == "":
+        return FALLBACK_IMAGE
+
+    url = str(url)
+
+    if "amazon.com/images" in url or "images.amazon.com" in url:
+        isbn = url.split("/")[-1]
+        return f"https://m.media-amazon.com/images/I/{isbn}"
+
+    if not url.startswith("https"):
+        return FALLBACK_IMAGE
+
+    return url
+
+
 for i, row in page_books.iterrows():
     with cols[i % 4]:
 
         # ✅ SAFE IMAGE LOGIC
-        img_url = row["Image-URL-M"]
+        img_url = normalize_image_url(row["Image-URL-M"])
         if pd.isna(img_url) or str(img_url).strip() == "":
             img_url = FALLBACK_IMAGE
 
@@ -200,7 +216,7 @@ for i, row in page_books.iterrows():
         <div class="book-card">
             <img class="book-img"
                  src="{img_url}"
-                 onerror="this.src='{FALLBACK_IMAGE}'">
+                 onerror="this.onerror=null;this.src='{FALLBACK_IMAGE}'">
             <div class="book-title" title="{row['Book-Title']}">
                 {row['Book-Title']}
             </div>
