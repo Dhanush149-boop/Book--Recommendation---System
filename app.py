@@ -10,12 +10,17 @@ st.set_page_config(
     layout="wide"
 )
 
+# ------------------ CONSTANTS ------------------
+FALLBACK_IMAGE = "https://via.placeholder.com/150x220?text=No+Cover"
+
 # ------------------ REMOVE DEFAULT PADDING ------------------
 st.markdown("""
 <style>
 .block-container {
     padding: 0rem !important;
 }
+[data-testid="stHeader"] {height: 0px;}
+[data-testid="stFooter"] {height: 0px;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -26,8 +31,7 @@ body {
     background-color: #f6f8fc;
 }
 
-header, footer {visibility: hidden;}
-
+/* HEADER */
 .sticky-header {
     position: fixed;
     top: 0;
@@ -60,7 +64,7 @@ header, footer {visibility: hidden;}
     background: white;
     border-radius: 14px;
     padding: 10px;
-    height: 350px;
+    height: 320px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     transition: all 0.3s ease;
     text-align: center;
@@ -72,13 +76,14 @@ header, footer {visibility: hidden;}
 }
 
 .book-img {
-    height: 160px;
+    height: 150px;
     object-fit: contain;
     margin-bottom: 6px;
 }
 
+/* TITLE */
 .book-title {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
@@ -87,7 +92,6 @@ header, footer {visibility: hidden;}
 
 .book-author {
     font-size: 14px;
-    font-weight: 500;
     color: #444;
 }
 
@@ -100,22 +104,6 @@ header, footer {visibility: hidden;}
     color: #f4b400;
     font-weight: 600;
     margin-top: 4px;
-}
-
-/* BUTTON */
-.show-btn {
-    margin-top: 6px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: none;
-    background: #2a5298;
-    color: white;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-.show-btn:hover {
-    background: #1e3c72;
 }
 
 /* PAGINATION */
@@ -156,7 +144,7 @@ DATA_DIR = Path(__file__).parent
 
 @st.cache_data(show_spinner=False)
 def load_data():
-    time.sleep(1.2)
+    time.sleep(1)
     books = pd.read_csv(DATA_DIR / "Books.csv", encoding="latin-1")
     ratings = pd.read_csv(DATA_DIR / "Ratings.csv", encoding="latin-1")
     users = pd.read_csv(DATA_DIR / "Users.csv", encoding="latin-1")
@@ -172,7 +160,7 @@ rating_count = ratings.groupby("ISBN")["Book-Rating"].count()
 books["avg_rating"] = books["ISBN"].map(avg_ratings).fillna(0)
 books["rating_count"] = books["ISBN"].map(rating_count).fillna(0).astype(int)
 
-# ------------------ PAGINATION ------------------
+# ------------------ SESSION STATE ------------------
 PER_PAGE = 12
 total_pages = math.ceil(len(books) / PER_PAGE)
 
@@ -191,59 +179,33 @@ st.markdown("## 📚 Explore Books")
 
 cols = st.columns(4)
 
-
-
-for i, row in page_books.iterrows():
-    with cols[i% 4]:
-        st.markdown(
-            f"""
-            <div style="
-                border:1px solid #ddd;
-                border-radius:10px;
-                padding:10px;
-                margin-bottom:20px;
-                text-align:center;
-                box-shadow:2px 2px 8px rgba(0,0,0,0.05);
-            ">
-                <img src="{row['Image-URL-M']}" style="height:200px; margin-bottom:10px;">
-                <h4>{row['Book-Title']}</h4>
-                <p style="font-size:14px;">
-                    📅 {row['Year-Of-Publication']}<br>
-                    🏢 {row['Publisher']}<br>
-                ⭐ {row['avg_rating']} ({row['rating_count']})
-            </div>
-                </p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
 for i, row in page_books.iterrows():
     with cols[i % 4]:
 
+        # ✅ SAFE IMAGE LOGIC
+        img_url = row["Image-URL-M"]
+        if pd.isna(img_url) or str(img_url).strip() == "":
+            img_url = FALLBACK_IMAGE
+
         st.markdown(f"""
         <div class="book-card">
-            <img src="{row['Image-URL-M']}" style="height:200px; margin-bottom:10px;">
-
+            <img class="book-img"
+                 src="{img_url}"
+                 onerror="this.src='{FALLBACK_IMAGE}'">
             <div class="book-title" title="{row['Book-Title']}">
                 {row['Book-Title']}
             </div>
-
-            <div class="book-author">
-                {row['Book-Author']}
-            </div>
-
+            <div class="book-author">{row['Book-Author']}</div>
             <div class="book-meta">
                 {row['Publisher']} · {row['Year-Of-Publication']}
             </div>
-
             <div class="rating">
                 ⭐ {row['avg_rating']} ({row['rating_count']})
             </div>
         </div>
         """, unsafe_allow_html=True)
 
+        # SHOW MORE / LESS
         if st.session_state.expanded == row["ISBN"]:
             if st.button("🔽 Show Less", key=f"less_{row['ISBN']}"):
                 st.session_state.expanded = None
@@ -256,6 +218,7 @@ for i, row in page_books.iterrows():
             st.dataframe(
                 details[["User-ID", "Location", "Age", "Book-Rating"]],
                 use_container_width=True,
+                height=150
             )
         else:
             if st.button("🔼 Show More", key=f"more_{row['ISBN']}"):
@@ -265,15 +228,15 @@ for i, row in page_books.iterrows():
 # ------------------ PAGINATION ------------------
 st.markdown('<div class="pagination">', unsafe_allow_html=True)
 
-col1, col2, col3 = st.columns([1,2,1])
+c1, _, c3 = st.columns([1,2,1])
 
-with col1:
+with c1:
     if st.session_state.page > 1:
         if st.button("⬅ Previous"):
             st.session_state.page -= 1
             st.rerun()
 
-with col3:
+with c3:
     if st.session_state.page < total_pages:
         if st.button("Next ➡"):
             st.session_state.page += 1
