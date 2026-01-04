@@ -18,12 +18,15 @@ FALLBACK_IMAGE = "http://images.amazon.com/images/P/0883684152.01.THUMBZZZ.jpg"
 st.markdown("""
 <style>
 .block-container {
-    padding: 0rem !important;
+    padding-top: 0rem !important;
 }
-[data-testid="stHeader"] {height: 0px;}
-[data-testid="stFooter"] {height: 0px;}
+header, footer {
+    visibility: hidden;
+    height: 0;
+}
 </style>
 """, unsafe_allow_html=True)
+
 
 # ------------------ CUSTOM CSS ------------------
 st.markdown("""
@@ -36,28 +39,30 @@ body {
 .sticky-header {
     position: fixed;
     top: 0;
+    left: 0;
     width: 100%;
+    height: 64px;
     background: linear-gradient(90deg, #1e3c72, #2a5298);
-    padding: 10px 24px;
-    z-index: 1000;
+    z-index: 999999;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .logo {
-    height: 42px;
+    position: absolute;
+    left: 24px;
+    height: 40px;
 }
 
 .header-title {
-    flex: 1;
-    text-align: center;
-    font-size: 24px;
+    font-size: 22px;
     color: white;
     font-weight: 700;
 }
 
 .page-spacer {
-    height: 75px;
+    height: 64px;
 }
 
             
@@ -140,6 +145,7 @@ st.markdown("""
 </div>
 <div class="page-spacer"></div>
 """, unsafe_allow_html=True)
+
 
 
 # ------------------ DATA LOADING ------------------
