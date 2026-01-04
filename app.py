@@ -34,38 +34,45 @@ body {
 }
 
 /* HEADER */
+.header {
+body {
+    background-color: #f6f8fc;
+}
+header, footer {visibility: hidden;}
 .sticky-header {
     position: fixed;
     top: 0;
     width: 100%;
-    background: linear-gradient(90deg, #1e3c72, #2a5298);
-    padding: 8px 16px; /* slightly smaller padding */
+    height: 70px;
+    background: linear-gradient(90deg, #f8fafc, #e2e8f0);
+    padding: 10px 24px;
     z-index: 1000;
     display: flex;
     align-items: center;
-    justify-content: center; /* center all content */
-    gap: 16px; /* spacing between logo and title */
-    height: 60px; /* fixed header height */
+    padding: 0 25px;
+    z-index: 1000;
+    border-bottom: 1px solid #ddd;
 }
-
+.header img {
+    height: 55px;
 .logo {
-    height: 40px; /* adjust logo to fit header */
+    height: 42px;
 }
-
 .header-title {
-    font-size: 20px;
+    flex: 1;
+    text-align: center;
+    font-size: 26px;
+    font-size: 24px;
     color: white;
     font-weight: 700;
+    color: #1e293b;
 }
-
-.page-spacer {
-    height: 60px; /* match sticky-header height */
-}
-
+.spacer { height: 85px; }
+            
 .page-spacer {
     height: 75px;
 }
-
+            
 /* BOOK CARD */
 .book-card {
     background: white;
