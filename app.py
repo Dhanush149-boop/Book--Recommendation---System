@@ -13,14 +13,16 @@ st.set_page_config(
 # ------------------ CONSTANTS ------------------
 FALLBACK_IMAGE = "http://images.amazon.com/images/P/0883684152.01.THUMBZZZ.jpg"
 
+
 # ------------------ REMOVE DEFAULT PADDING ------------------
 st.markdown("""
 <style>
 .block-container {
     padding: 0rem !important;
 }
-[data-testid="stHeader"]
-[data-testid="stFooter"] {height: 0px;}
+[data-testid="stHeader"], [data-testid="stFooter"] {
+    height: 0px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -133,7 +135,7 @@ body {
 # ------------------ HEADER ------------------
 st.markdown("""
 <div class="sticky-header">
-    <img class="logo" src="https://surl.lt/tjejwe">
+   <img class="logo" src="https://surl.lt/tjejwe">
     <div class="header-title">Book Recommendation System</div>
 </div>
 <div class="page-spacer"></div>
