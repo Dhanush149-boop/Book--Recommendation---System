@@ -39,22 +39,27 @@ body {
     top: 0;
     width: 100%;
     background: linear-gradient(90deg, #1e3c72, #2a5298);
-    padding: 10px 24px;
+    padding: 8px 16px; /* slightly smaller padding */
     z-index: 1000;
     display: flex;
     align-items: center;
+    justify-content: center; /* center all content */
+    gap: 16px; /* spacing between logo and title */
+    height: 60px; /* fixed header height */
 }
 
 .logo {
-    height: 42px;
+    height: 40px; /* adjust logo to fit header */
 }
 
 .header-title {
-    flex: 1;
-    text-align: center;
-    font-size: 24px;
+    font-size: 20px;
     color: white;
     font-weight: 700;
+}
+
+.page-spacer {
+    height: 60px; /* match sticky-header height */
 }
 
 .page-spacer {
@@ -136,7 +141,7 @@ body {
 st.markdown("""
 <div class="sticky-header">
    <img class="logo" src="https://surl.lt/tjejwe">
-    <div class="header-title">Book Recommendation System</div>
+   <div class="header-title">Book Recommendation System</div>
 </div>
 <div class="page-spacer"></div>
 """, unsafe_allow_html=True)
