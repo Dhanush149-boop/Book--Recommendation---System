@@ -16,6 +16,8 @@ st.markdown("""
 .block-container {
     padding: 0rem !important;
 }
+[data-testid="stHeader"] {height: 0px;}
+[data-testid="stFooter"] {height: 0px;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -26,8 +28,7 @@ body {
     background-color: #f6f8fc;
 }
 
-header, footer {visibility: hidden;}
-
+/* HEADER */
 .sticky-header {
     position: fixed;
     top: 0;
@@ -60,7 +61,7 @@ header, footer {visibility: hidden;}
     background: white;
     border-radius: 14px;
     padding: 10px;
-    height: 350px;
+    height: 320px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     transition: all 0.3s ease;
     text-align: center;
@@ -72,13 +73,13 @@ header, footer {visibility: hidden;}
 }
 
 .book-img {
-    height: 160px;
+    height: 150px;
     object-fit: contain;
     margin-bottom: 6px;
 }
 
 .book-title {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
@@ -111,11 +112,6 @@ header, footer {visibility: hidden;}
     background: #2a5298;
     color: white;
     font-size: 12px;
-    cursor: pointer;
-}
-
-.show-btn:hover {
-    background: #1e3c72;
 }
 
 /* PAGINATION */
@@ -143,9 +139,10 @@ header, footer {visibility: hidden;}
 """, unsafe_allow_html=True)
 
 # ------------------ HEADER ------------------
+# Saraswati logo (direct image URL – safest)
 st.markdown("""
 <div class="sticky-header">
-    <img class="logo" src="https://surl.lt/tjejwe">
+    <img class="logo" src="https://i.imgur.com/Y0yYFZP.png">
     <div class="header-title">Book Recommendation System</div>
 </div>
 <div class="page-spacer"></div>
@@ -156,7 +153,7 @@ DATA_DIR = Path(__file__).parent
 
 @st.cache_data(show_spinner=False)
 def load_data():
-    time.sleep(1.2)
+    time.sleep(1)
     books = pd.read_csv(DATA_DIR / "Books.csv", encoding="latin-1")
     ratings = pd.read_csv(DATA_DIR / "Ratings.csv", encoding="latin-1")
     users = pd.read_csv(DATA_DIR / "Users.csv", encoding="latin-1")
@@ -172,7 +169,7 @@ rating_count = ratings.groupby("ISBN")["Book-Rating"].count()
 books["avg_rating"] = books["ISBN"].map(avg_ratings).fillna(0)
 books["rating_count"] = books["ISBN"].map(rating_count).fillna(0).astype(int)
 
-# ------------------ PAGINATION ------------------
+# ------------------ PAGINATION STATE ------------------
 PER_PAGE = 12
 total_pages = math.ceil(len(books) / PER_PAGE)
 
@@ -204,9 +201,7 @@ for i, row in page_books.iterrows():
                 {row['Book-Title']}
             </div>
 
-            <div class="book-author">
-                {row['Book-Author']}
-            </div>
+            <div class="book-author">{row['Book-Author']}</div>
 
             <div class="book-meta">
                 {row['Publisher']} · {row['Year-Of-Publication']}
@@ -230,7 +225,7 @@ for i, row in page_books.iterrows():
             st.dataframe(
                 details[["User-ID", "Location", "Age", "Book-Rating"]],
                 use_container_width=True,
-                height=150
+                height=140
             )
         else:
             if st.button("🔼 Show More", key=f"more_{row['ISBN']}"):
@@ -240,15 +235,15 @@ for i, row in page_books.iterrows():
 # ------------------ PAGINATION ------------------
 st.markdown('<div class="pagination">', unsafe_allow_html=True)
 
-col1, col2, col3 = st.columns([1,2,1])
+c1, c2, c3 = st.columns([1,2,1])
 
-with col1:
+with c1:
     if st.session_state.page > 1:
         if st.button("⬅ Previous"):
             st.session_state.page -= 1
             st.rerun()
 
-with col3:
+with c3:
     if st.session_state.page < total_pages:
         if st.button("Next ➡"):
             st.session_state.page += 1
