@@ -27,25 +27,17 @@ def load_data():
     ratings = pd.read_csv(DATA_DIR / "Ratings.csv")
     users = pd.read_csv(DATA_DIR / "Users.csv")
 
-    return books, ratings, users
+    return books
 
 
-# ---------------- Streamlit UI ----------------
-st.title("📚 Book Recommendation System")
-st.write("Welcome!")
 
-books, ratings, users = load_data()
+books = load_data()
 
 if books is not None:
     st.success("✅ Data loaded successfully!")
 
     st.subheader("Books Dataset")
     st.dataframe(books.head())
-
-    st.subheader("Ratings Dataset")
-    st.dataframe(ratings.head())
-
-    st.subheader("Users Dataset")
-    st.dataframe(users.head())
+    
 else:
     st.warning("BOOks, Ratings, Users")
