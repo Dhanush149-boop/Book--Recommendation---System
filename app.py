@@ -20,9 +20,8 @@ st.markdown("""
 .block-container {
     padding: 0rem !important;
 }
-[data-testid="stHeader"], [data-testid="stFooter"] {
-    height: 0px;
-}
+[data-testid="stHeader"] {height: 0px;},
+[data-testid="stFooter"] {height: 0px;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -61,6 +60,7 @@ body {
     height: 75px;
 }
 
+            
 /* BOOK CARD */
 .book-card {
     background: white;
@@ -135,7 +135,7 @@ body {
 # ------------------ HEADER ------------------
 st.markdown("""
 <div class="sticky-header">
-   <img class="logo" src="https://surl.lt/tjejwe">
+    <img class="logo" src="https://surl.lt/tjejwe">
     <div class="header-title">Book Recommendation System</div>
 </div>
 <div class="page-spacer"></div>
