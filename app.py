@@ -20,7 +20,7 @@ st.markdown("""
 .block-container {
     padding: 0rem !important;
 }
-[data-testid="stHeader"] {height: 0px;},
+[data-testid="stHeader"] {height: 0px;}
 [data-testid="stFooter"] {height: 0px;}
 </style>
 """, unsafe_allow_html=True)
