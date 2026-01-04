@@ -49,18 +49,6 @@ body {
     justify-content: center;
 }
 
-            /* FOOTER */
-.footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(90deg, #1e3c72, #2a5298);
-    color: white;
-    text-align: center;
-    padding: 6px;
-    font-size: 13px;
-}
 .logo {
     position: absolute;
     left: 24px;
@@ -135,7 +123,18 @@ body {
     text-align: center;
 }
 
-
+/* FOOTER */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left:0;
+    width: 100%;
+    background: linear-gradient(90deg, #1e3c72, #2a5298);
+    color: white;
+    text-align: center;
+    padding: 6px;
+    font-size: 13px;
+}
 </style>
 """, unsafe_allow_html=True)
 
