@@ -23,21 +23,20 @@ def load_data():
             st.error(f"❌ Missing file: {file}")
             return None, None, None
 
-    books = pd.read_csv(DATA_DIR / "Books.csv")
-    ratings = pd.read_csv(DATA_DIR / "Ratings.csv")
-    users = pd.read_csv(DATA_DIR / "Users.csv")
+    books = pd.read_csv(DATA_DIR / "Books.csv", encoding="latin-1")
+    ratings = pd.read_csv(DATA_DIR / "Ratings.csv", encoding="latin-1")
+    users = pd.read_csv(DATA_DIR / "Users.csv", encoding="latin-1")
 
-    return books
+    return books, ratings, users
 
 
-
-books = load_data()
+books, ratings, users = load_data()
 
 if books is not None:
     st.success("✅ Data loaded successfully!")
 
     st.subheader("Books Dataset")
     st.dataframe(books.head())
-    
+
 else:
-    st.warning("BOOks, Ratings, Users")
+    st.warning("⚠️ Failed to load datasets")
