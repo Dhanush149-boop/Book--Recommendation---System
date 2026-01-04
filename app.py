@@ -2,64 +2,103 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 import math
+import time
 
 # ------------------ PAGE CONFIG ------------------
 st.set_page_config(
     page_title="Book Recommendation System",
-    page_icon="📚",
+    page_icon="🪷",
     layout="wide"
 )
 
-# ------------------ CUSTOM CSS ------------------
+# ------------------ CSS ------------------
 st.markdown("""
 <style>
+html, body, [data-testid="stAppViewContainer"] {
+    padding: 0;
+    margin: 0;
+}
+
 header {visibility: hidden;}
 
 .sticky-header {
     position: fixed;
     top: 0;
     width: 100%;
-    background-color: #0f172a;
-    padding: 10px 30px;
+    background: linear-gradient(90deg, #1e3c72, #2a5298);
+    padding: 12px 24px;
     z-index: 999;
     display: flex;
     align-items: center;
 }
 
 .logo {
-    font-size: 26px;
+    font-size: 32px;
 }
 
 .title {
     flex: 1;
     text-align: center;
-    font-size: 26px;
+    font-size: 28px;
     color: white;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-.main-content {
-    margin-top: 90px;
-    margin-bottom: 90px;
+.main {
+    margin-top: 80px;
+    margin-bottom: 120px;
+    padding: 0 20px;
 }
 
-.book-card {
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 12px;
-    text-align: center;
+.card {
+    height: 430px;
+    border-radius: 14px;
+    padding: 14px;
     background: white;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+.card img {
+    height: 190px;
+}
+
+.card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 6px 0;
+}
+
+.card-text {
+    font-size: 13px;
+    color: #555;
+}
+
+.pagination {
+    position: fixed;
+    bottom: 52px;
+    width: 100%;
+    background: #f8fafc;
+    padding: 10px;
+    text-align: center;
+    z-index: 998;
 }
 
 .footer {
     position: fixed;
     bottom: 0;
     width: 100%;
-    background-color: #0f172a;
+    background: #1e293b;
     color: white;
-    text-align: center;
     padding: 10px;
+    text-align: center;
+    font-size: 14px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -67,12 +106,12 @@ header {visibility: hidden;}
 # ------------------ HEADER ------------------
 st.markdown("""
 <div class="sticky-header">
-    <div class="logo">📚</div>
+    <div class="logo">🪷</div>
     <div class="title">Book Recommendation System</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ------------------ DATA LOADING ------------------
+# ------------------ DATA ------------------
 DATA_DIR = Path(__file__).parent
 
 @st.cache_data
@@ -84,80 +123,95 @@ def load_data():
 
 books, ratings, users = load_data()
 
-# ------------------ MERGE & PREPARE DATA ------------------
-ratings_summary = ratings.groupby("ISBN").agg(
+# ------------------ PREPARE DATA ------------------
+rating_stats = ratings.groupby("ISBN").agg(
     avg_rating=("Book-Rating", "mean"),
     rating_count=("Book-Rating", "count")
 ).reset_index()
 
-books = books.merge(ratings_summary, on="ISBN", how="left")
+books = books.merge(rating_stats, on="ISBN", how="left")
 books["avg_rating"] = books["avg_rating"].fillna(0).round(2)
 books["rating_count"] = books["rating_count"].fillna(0).astype(int)
 
 # ------------------ PAGINATION ------------------
-BOOKS_PER_PAGE = 12
-total_pages = math.ceil(len(books) / BOOKS_PER_PAGE)
+PER_PAGE = 12
+total_pages = math.ceil(len(books) / PER_PAGE)
 
 if "page" not in st.session_state:
     st.session_state.page = 1
 
-start = (st.session_state.page - 1) * BOOKS_PER_PAGE
-end = start + BOOKS_PER_PAGE
-books_page = books.iloc[start:end]
+if "expanded" not in st.session_state:
+    st.session_state.expanded = None
 
-# ------------------ MAIN CONTENT ------------------
-st.markdown('<div class="main-content">', unsafe_allow_html=True)
+start = (st.session_state.page - 1) * PER_PAGE
+end = start + PER_PAGE
+page_books = books.iloc[start:end]
 
-st.subheader("📖 Explore Books")
+# ------------------ MAIN ------------------
+st.markdown('<div class="main">', unsafe_allow_html=True)
+st.subheader("📚 Explore Books")
 
 cols = st.columns(4)
 
-for idx, row in books_page.iterrows():
-    with cols[idx % 4]:
+for i, row in page_books.iterrows():
+    with cols[i % 4]:
         st.markdown(f"""
-        <div class="book-card">
-            <img src="{row['Image-URL-M']}" height="180"><br><br>
-            <b>{row['Book-Title']}</b><br>
-            <small>{row['Book-Author']}</small><br>
-            📅 {row['Year-Of-Publication']}<br>
-            🏢 {row['Publisher']}<br><br>
-            ⭐ {row['avg_rating']} ({row['rating_count']} ratings)
+        <div class="card">
+            <img src="{row['Image-URL-M']}"><br>
+            <div class="card-title">{row['Book-Title']}</div>
+            <div class="card-text">{row['Book-Author']}</div>
+            <div class="card-text">📅 {row['Year-Of-Publication']}</div>
+            <div class="card-text">⭐ {row['avg_rating']} ({row['rating_count']})</div>
         </div>
         """, unsafe_allow_html=True)
 
-        if st.button("Show More", key=row["ISBN"]):
-            st.markdown("#### 👤 User Ratings")
+        if st.session_state.expanded == row["ISBN"]:
+            if st.button("🔽 Show Less", key=f"less{row['ISBN']}"):
+                st.session_state.expanded = None
+                st.rerun()
 
-            book_ratings = ratings[ratings["ISBN"] == row["ISBN"]].merge(
+            user_data = ratings[ratings["ISBN"] == row["ISBN"]].merge(
                 users, on="User-ID", how="left"
             ).head(5)
 
             st.dataframe(
-                book_ratings[["User-ID", "Location", "Age", "Book-Rating"]],
+                user_data[["User-ID", "Location", "Age", "Book-Rating"]],
                 use_container_width=True
             )
+        else:
+            if st.button("🔼 Show More", key=f"more{row['ISBN']}"):
+                st.session_state.expanded = row["ISBN"]
+                st.rerun()
 
-# ------------------ PAGINATION CONTROLS ------------------
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ------------------ PAGINATION BAR ------------------
+st.markdown('<div class="pagination">', unsafe_allow_html=True)
+
 col1, col2, col3 = st.columns([1,2,1])
 
 with col1:
-    if st.button("⬅ Previous") and st.session_state.page > 1:
-        st.session_state.page -= 1
-        st.rerun()
+    if st.button("⬅ Previous", disabled=st.session_state.page == 1):
+        with st.spinner("Loading books..."):
+            time.sleep(0.5)
+            st.session_state.page -= 1
+            st.session_state.expanded = None
+            st.rerun()
 
 with col3:
-    if st.button("Next ➡") and st.session_state.page < total_pages:
-        st.session_state.page += 1
-        st.rerun()
+    if st.button("Next ➡", disabled=st.session_state.page == total_pages):
+        with st.spinner("Loading books..."):
+            time.sleep(0.5)
+            st.session_state.page += 1
+            st.session_state.expanded = None
+            st.rerun()
 
-st.markdown(f"<p style='text-align:center;'>Page {st.session_state.page} of {total_pages}</p>",
-            unsafe_allow_html=True)
-
+st.markdown(f"Page {st.session_state.page} of {total_pages}", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------ FOOTER ------------------
 st.markdown("""
 <div class="footer">
-    Built with ❤️ using Streamlit | Book Recommendation System
+    © 2026 Book Recommendation System | Built with ❤️ using Streamlit
 </div>
 """, unsafe_allow_html=True)
