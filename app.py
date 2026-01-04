@@ -30,4 +30,22 @@ def load_data():
     return books, ratings, users
 
 
-st.write("hi dhanush")
+# ---------------- Streamlit UI ----------------
+st.title("📚 Book Recommendation System")
+st.write("Welcome!")
+
+books, ratings, users = load_data()
+
+if books is not None:
+    st.success("✅ Data loaded successfully!")
+
+    st.subheader("Books Dataset")
+    st.dataframe(books.head())
+
+    st.subheader("Ratings Dataset")
+    st.dataframe(ratings.head())
+
+    st.subheader("Users Dataset")
+    st.dataframe(users.head())
+else:
+    st.warning("BOOks, Ratings, Users")
