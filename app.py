@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 # ------------------ CONSTANTS ------------------
-FALLBACK_IMAGE = "https://via.placeholder.com/150x220?text=No+Cover"
+FALLBACK_IMAGE = "http://images.amazon.com/images/P/0883684152.01.THUMBZZZ.jpg"
 
 # ------------------ REMOVE DEFAULT PADDING ------------------
 st.markdown("""
@@ -19,7 +19,7 @@ st.markdown("""
 .block-container {
     padding: 0rem !important;
 }
-[data-testid="stHeader"] {height: 0px;}
+[data-testid="stHeader"]
 [data-testid="stFooter"] {height: 0px;}
 </style>
 """, unsafe_allow_html=True)
@@ -138,6 +138,7 @@ st.markdown("""
 </div>
 <div class="page-spacer"></div>
 """, unsafe_allow_html=True)
+
 
 # ------------------ DATA LOADING ------------------
 DATA_DIR = Path(__file__).parent
