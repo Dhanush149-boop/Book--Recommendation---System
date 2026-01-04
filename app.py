@@ -185,7 +185,7 @@ end = start + PER_PAGE
 page_books = books.iloc[start:end]
 
 # ------------------ BOOK GRID ------------------
-st.markdown("## 📚 Explore Books")
+st.markdown("## 📚 We Love Books")
 
 cols = st.columns(4)
 
