@@ -191,6 +191,34 @@ st.markdown("## 📚 Explore Books")
 
 cols = st.columns(4)
 
+
+
+for i, row in page_books.iterrows():
+    with cols[i% 4]:
+        st.markdown(
+            f"""
+            <div style="
+                border:1px solid #ddd;
+                border-radius:10px;
+                padding:10px;
+                margin-bottom:20px;
+                text-align:center;
+                box-shadow:2px 2px 8px rgba(0,0,0,0.05);
+            ">
+                <img src="{row['Image-URL-M']}" style="height:200px; margin-bottom:10px;">
+                <h4>{row['Book-Title']}</h4>
+                <p style="font-size:14px;">
+                    📅 {row['Year-Of-Publication']}<br>
+                    🏢 {row['Publisher']}<br>
+                ⭐ {row['avg_rating']} ({row['rating_count']})
+            </div>
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
 for i, row in page_books.iterrows():
     with cols[i % 4]:
 
