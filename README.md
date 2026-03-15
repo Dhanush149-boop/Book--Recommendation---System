@@ -1,14 +1,14 @@
-Book Recommendation System
-Description....
+ # Book Recommendation System
+## Description
 This project recommends books to users based on their preferences using machine learning techniques.
-Technologies used....
+## Technologies Used
 - Python
 - Pandas
 - Scikit-learn
-Features....
+## Features
 - Book recommendation
 - Similarity-based filtering
 - Dataset analysis
- Author.....
-- Dhanush  
-- B.Tech CSE Graduate
+ ## Author
+Dhanush  
+B.Tech CSE Graduate
